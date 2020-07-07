@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class AppMsgSender extends Thread {
-    ArrayList<Socket> clientSockerList = new ArrayList<>();
+    // ArrayList<Socket> clientSockerList = new ArrayList<>();
     Node node;
     ArrayList<Integer> outgoingNodeList;
 
@@ -26,19 +26,19 @@ public class AppMsgSender extends Thread {
             this.node.index0StartWait = false;
         }
         if (this.node.status.equals("active")) {
-            if (this.node.appMsgSent >= this.node.maxNumber) {
-                System.out.println("the number of app message of the node: " + this.node.nodeID + " sent has already larger than maxNumber but don't know why it become active again maybe something wrong....");
-                this.node.status = "passive";
-                for (Socket socket : clientSockerList) {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                System.out.println("the node: " + this.node.nodeID + " over.");
-                return;
-            }
+//            if (this.node.appMsgSent >= this.node.maxNumber) {
+//                System.out.println("the number of app message of the node: " + this.node.nodeID + " sent has already larger than maxNumber but don't know why it become active again maybe something wrong....");
+//                this.node.status = "passive";
+//                for (Socket socket : clientSockerList) {
+//                    try {
+//                        socket.close();
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                System.out.println("the node: " + this.node.nodeID + " over.");
+//                return;
+//            }
 
             // send a message
             Random rand = new Random();
@@ -47,10 +47,12 @@ public class AppMsgSender extends Thread {
             String hostname = this.node.NodeInfoList.get(randNodeID).get("hostname");
             int port = Integer.parseInt(node.NodeInfoList.get(randNodeID).get("port"));
 
+            this.node.timestamp_array[this.node.nodeID] += 1; // update timestamp: sending a message C[i] += 1 and piggyback C on message
             Message msg = new Message.MessageBuilder()
                     .from(this.node.nodeID)
                     .to(this.node.outgoingNodeList.get(randSocketIndex))
                     .type("application")
+                    .timestamp_array(this.node.timestamp_array)
                     .build();
             msg.sendMsg(msg, hostname + ".utdallas.edu", port);
 
@@ -65,14 +67,18 @@ public class AppMsgSender extends Thread {
             } else {
                 if (this.node.appMsgSent == this.node.maxNumber) {
                     this.node.status = "passive";
-                    for (Socket socket : clientSockerList) {
-                        try {
-                            socket.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+//                    for (Socket socket : clientSockerList) {
+//                        try {
+//                            socket.close();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+                    System.out.println("########### the node: " + this.node.nodeID + " over.....sent message: " + this.node.appMsgSent + " status now: " + this.node.status);
+                    System.out.println("My timestamp now is: ");
+                    for (int timestamp : this.node.timestamp_array) {
+                        System.out.print(timestamp + ", ");
                     }
-                    System.out.println("the node: " + this.node.nodeID + " over.....sent message: " + this.node.appMsgSent + " status now: " + this.node.status);
                     return;
                 }
             }

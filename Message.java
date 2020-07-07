@@ -12,6 +12,7 @@ public class Message implements Serializable, Comparable<Message> {
     private final int from, to;
     private final int clock;
     private final int span;
+    private final int[] timestamp_array;
 
     private Message(MessageBuilder mb) {
         this.from = mb.from;
@@ -20,6 +21,7 @@ public class Message implements Serializable, Comparable<Message> {
         this.content = mb.content;
         this.clock = mb.clock;
         this.span = mb.span;
+        this.timestamp_array = mb.timestamp_array;
     }
 
     public void sendMsg(Message msg, String hostname, int port) {
@@ -86,11 +88,16 @@ public class Message implements Serializable, Comparable<Message> {
         return span;
     }
 
+    public int[] getTimestamp_array() {
+        return timestamp_array;
+    }
+
     public static class MessageBuilder {
         private String type, content = "";
         private int clock;
         private int from, to;
         private int span;
+        private int[] timestamp_array;
 
         public MessageBuilder from(int from) {
             this.from = from;
@@ -119,6 +126,11 @@ public class Message implements Serializable, Comparable<Message> {
 
         public MessageBuilder span(int span) {
             this.span = span;
+            return this;
+        }
+
+        public MessageBuilder timestamp_array(int[] timestamp_array) {
+            this.timestamp_array = timestamp_array;
             return this;
         }
 

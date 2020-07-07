@@ -2,6 +2,7 @@ import java.io.*;
 import java.lang.Thread;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Map;
@@ -21,13 +22,15 @@ public class Node implements Runnable {
     public String status; // passive or acitve
     public int appMsgSent; // application message sent
     public boolean passived; // mark the node has already became passive
-    public boolean index0StartWait;
+    public boolean index0StartWait; // use to wait other node started
     public int parentID = -1; // parent id in the spanning tree
     public ArrayList<Integer> children = new ArrayList<>(); // children in the spanning tree
+    public int[] timestamp_array;
 
     public Node() throws UnknownHostException {
         ConfigReader config = new ConfigReader();
         this.nodeNum = config.nodeNum;
+        timestamp_array = new int[this.nodeNum];
         this.nodeID = config.myNodeIndex;
         this.hostName = config.myHostName;
         this.perActive = config.perActive;
@@ -71,7 +74,11 @@ public class Node implements Runnable {
 
     public void receiveMsg(Message msg) throws InterruptedException {
         if (msg.getType().equals("application")) {
-            System.out.println(">>>>>>>>>>>>>>receive an app message from " + msg.getSender() + " status now: " + this.status);
+            System.out.println("> > > > > > > > > > > > receive an app message from " + msg.getSender() + " status now: " + this.status);
+            // update timestamp
+            for (int i = 0; i < this.nodeNum; i++) {
+                this.timestamp_array[i] = Math.max(this.timestamp_array[i], msg.getTimestamp_array()[i]);
+            }
             if (this.appMsgSent < this.maxNumber && !this.status.equals("active")) {
                 System.out.println("appMsgSent less than maxNumber, change status to active");
                 this.status = "active";
