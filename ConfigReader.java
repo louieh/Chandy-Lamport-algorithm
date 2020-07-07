@@ -16,7 +16,7 @@ public class ConfigReader {
     int minSendDelay;
     int snapShotDelay;
     int maxNumber;
-    ArrayList<Map<String, String>> NodeInfoList;
+    ArrayList<HashMap<String, String>> NodeInfoList;
     ArrayList<Integer> outgoingNodeList;
 
     public ConfigReader() throws UnknownHostException {
@@ -30,7 +30,7 @@ public class ConfigReader {
         boolean firstline = false;
         int parsedNode = 0;
         int parsedOutgoingIndex = 0;
-        this.NodeInfoList = new ArrayList<Map<String, String>>();
+        this.NodeInfoList = new ArrayList<HashMap<String, String>>();
         this.outgoingNodeList = new ArrayList<>();
         System.out.println("current path: " + System.getProperty("user.dir"));
         try (BufferedReader br = new BufferedReader(new FileReader("./config.txt"))) {
@@ -50,7 +50,7 @@ public class ConfigReader {
                 } else {
                     if (parsedNode != this.nodeNum) {
                         if (line_list[1].equals(this.myHostName)) this.myNodeIndex = parsedNode;
-                        Map<String, String> temp = new HashMap<>();
+                        HashMap<String, String> temp = new HashMap<>();
                         temp.put("hostname", line_list[1]);
                         temp.put("port", line_list[2]);
                         this.NodeInfoList.add(temp);
@@ -84,7 +84,7 @@ public class ConfigReader {
         System.out.println("minSendDelay: " + a.minSendDelay);
         System.out.println("snapShotDelay: " + a.snapShotDelay);
         System.out.println("maxNumber: " + a.maxNumber);
-        ArrayList<Map<String, String>> NodeInfoList = a.NodeInfoList;
+        ArrayList<HashMap<String, String>> NodeInfoList = a.NodeInfoList;
 //        for (int i = 0; i < NodeInfoList.size(); i++) {
 //            System.out.println("node index: " + i + "node host name: " + NodeInfoList.get(i).get("hostname") + "node port" + NodeInfoList.get(i).get("port"));
 //        }
