@@ -22,6 +22,10 @@ public class NodeListener extends Thread {
     public void run() {
         while (true) {
             try {
+//                if (this.node.ifMAPStop) {
+//                    System.out.println("Node " + this.node.nodeID + " listener thread stop...");
+//                    return;
+//                }
                 // System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "...");
                 Socket server = serverSocket.accept();
 

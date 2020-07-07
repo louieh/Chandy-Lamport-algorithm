@@ -7,7 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 
-public class ChandyLamport extends Thread {
+public class ChandyLamport implements Runnable {
 
     Node node;
 
@@ -19,23 +19,20 @@ public class ChandyLamport extends Thread {
     @Override
     public void run() {
         while (true) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             if (this.node.nodeID == 0) {
-                if (!this.node.CLStarted) {
-                    // record local state and send mark
+                System.out.println(this.node.test);
+                if (!this.node.CLStarted && !this.node.ifMAPStop) {
                     this.node.statusBuffer = this.node.status;
                     this.node.timestampBuffer = this.node.timestamp_array;
+                    System.out.println("@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@@#@#@send MARKER #$#$#$#$#$#$#$#$");
                     this.node.broadcast("MARKER");
+                    System.out.println("^&*&*&*&*&*&*&*&*&*&*&*&* set CLStarted to true chandylamport function");
                     this.node.CLStarted = true;
-                } else { // CL protocl have already started
-                    if (this.node.statusCollection.size() == this.node.outgoingNodeList.size() && !this.node.ifMAPStop) {
-                        // print statusCollection and print timestampCollection to make sure they indeed concurrent
-                        // clear them
-                        this.node.statusCollection.clear();
-                        this.node.timestampCollection.clear();
-                        this.node.statusBuffer = this.node.status;
-                        this.node.timestampBuffer = this.node.timestamp_array;
-                        this.node.broadcast("MARKER");
-                    }
                 }
             }
         }
