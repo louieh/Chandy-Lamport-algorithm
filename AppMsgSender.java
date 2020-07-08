@@ -20,29 +20,7 @@ public class AppMsgSender extends Thread {
     @Override
     public void run() {
         while (true) {
-            if (this.node.nodeID == 0 && this.node.index0StartWait) {
-                try {
-                    sleep(6000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.node.index0StartWait = false;
-            }
             if (this.node.status.equals("active")) {
-//            if (this.node.appMsgSent >= this.node.maxNumber) {
-//                System.out.println("the number of app message of the node: " + this.node.nodeID + " sent has already larger than maxNumber but don't know why it become active again maybe something wrong....");
-//                this.node.status = "passive";
-//                for (Socket socket : clientSockerList) {
-//                    try {
-//                        socket.close();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                System.out.println("the node: " + this.node.nodeID + " over.");
-//                return;
-//            }
-
                 // send a message
                 Random rand = new Random();
                 int randSocketIndex = rand.nextInt(this.outgoingNodeList.size());
@@ -60,7 +38,7 @@ public class AppMsgSender extends Thread {
                 msg.sendMsg(msg, hostname + ".utdallas.edu", port);
 
                 this.node.appMsgSent++;
-                System.out.println("I'm " + this.node.nodeID + "I have sent " + this.node.appMsgSent + "message and my status now is " + this.node.status);
+                System.out.println("I'm " + this.node.nodeID + " have sent " + this.node.appMsgSent + "message and my status now is " + this.node.status);
 
                 if (!this.node.passived) {
                     if (this.node.appMsgSent == this.node.perActive) {
@@ -70,14 +48,7 @@ public class AppMsgSender extends Thread {
                 } else {
                     if (this.node.appMsgSent == this.node.maxNumber) {
                         this.node.status = "passive";
-//                    for (Socket socket : clientSockerList) {
-//                        try {
-//                            socket.close();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-                        System.out.println("########### the node: " + this.node.nodeID + " over.....sent message: " + this.node.appMsgSent + " status now: " + this.node.status);
+                        System.out.println("++++++++++++++++++++ the node: " + this.node.nodeID + " over.....sent message: " + this.node.appMsgSent + " status now: " + this.node.status);
                         System.out.println("My timestamp now is: ");
                         for (int timestamp : this.node.timestamp_array) {
                             System.out.print(timestamp + ", ");
@@ -86,7 +57,6 @@ public class AppMsgSender extends Thread {
                     }
                 }
                 try {
-                    // System.out.println("--- wait to send next message...");
                     sleep(this.node.minSendDelay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();

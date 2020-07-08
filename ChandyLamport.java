@@ -20,18 +20,21 @@ public class ChandyLamport implements Runnable {
     public void run() {
         while (true) {
             try {
-                Thread.sleep(5000);
+                Thread.sleep(this.node.snapShotDelay);
+                if (this.node.ifMAPStop || this.node.terminate) {
+                    System.out.println("+++++++++++++++++++ Node " + this.node.nodeID + " Chandy Lamport stop.....");
+                    return;
+                }
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             if (this.node.nodeID == 0) {
-                System.out.println(this.node.test);
-                if (!this.node.CLStarted && !this.node.ifMAPStop) {
+                if (!this.node.CLStarted) {
                     this.node.statusBuffer = this.node.status;
                     this.node.timestampBuffer = this.node.timestamp_array;
                     System.out.println("@#@#@#@#@#@#@#@#@#@#@#@#@#@#@#@@#@#@send MARKER #$#$#$#$#$#$#$#$");
                     this.node.broadcast("MARKER");
-                    System.out.println("^&*&*&*&*&*&*&*&*&*&*&*&* set CLStarted to true chandylamport function");
                     this.node.CLStarted = true;
                 }
             }

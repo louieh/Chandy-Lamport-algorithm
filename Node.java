@@ -35,7 +35,7 @@ public class Node implements Runnable {
     public HashMap<Integer, int[]> timestampCollection = new HashMap<>(); // record when receive CONVERGECAST message
     public boolean CLStarted;
     public boolean ifMAPStop;
-    public int test;
+    public boolean terminate;
 
     public Node() throws UnknownHostException {
         ConfigReader config = new ConfigReader();
@@ -62,6 +62,7 @@ public class Node implements Runnable {
         this.timestampBuffer = new int[this.nodeNum];
         this.CLStarted = false;
         this.ifMAPStop = false;
+        this.terminate = false;
     }
 
     public void makeSpanningTree() throws IOException, InterruptedException {
@@ -78,21 +79,45 @@ public class Node implements Runnable {
     }
 
     private boolean ifMAPStop(HashMap<Integer, String> statusCollection) {
-        // if MAP stopped
         for (HashMap.Entry<Integer, String> entry : statusCollection.entrySet()) {
-            System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
             if (entry.getValue().equals("active")) return false;
         }
         return true;
     }
 
-    public void broadcast(Message msg) {
-        for (int outgoingNode : this.outgoingNodeList) {
-            if (outgoingNode != 0) {
-                String broadcast_hostname = this.NodeInfoList.get(outgoingNode).get("hostname");
-                int broadcast_port = Integer.parseInt(this.NodeInfoList.get(outgoingNode).get("port"));
-                msg.sendMsg(msg, broadcast_hostname + ".utdallas.edu", broadcast_port);
+    public void outputFile(HashMap<Integer, int[]> timestampCollection) {
+        System.out.println("sssssssnnnnnnaaaaaappppppssssssshhhhoooooottttttt");
+        for (Map.Entry<Integer, int[]> entry : timestampCollection.entrySet()) {
+            int NodeID = entry.getKey();
+            int[] timestamp_array = entry.getValue();
+            try {
+                File file = new File("config-" + NodeID + ".out");
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+                FileWriter fileWriter = new FileWriter(file.getName(), true);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                for (int each : timestamp_array) {
+                    bufferedWriter.write(each + " ");
+                }
+                bufferedWriter.write("\n");
+                bufferedWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }
+    }
+
+    public void broadcastChildren(String msgType) {
+        for (int child : this.children) {
+            String broadcastChildren_hostname = this.NodeInfoList.get(child).get("hostname");
+            int broadcastChildren_port = Integer.parseInt(this.NodeInfoList.get(child).get("port"));
+            Message msg = new Message.MessageBuilder()
+                    .from(this.nodeID)
+                    .to(child)
+                    .type(msgType)
+                    .build();
+            msg.sendMsg(msg, broadcastChildren_hostname + ".utdallas.edu", broadcastChildren_port);
         }
     }
 
@@ -131,9 +156,6 @@ public class Node implements Runnable {
     }
 
     public void receiveMsg(Message msg) throws InterruptedException {
-        this.test += 1;
-        if (this.nodeID == 0)
-            System.out.println("this.CLStarted: " + this.CLStarted + " this.ifMAPStop: " + this.ifMAPStop);
         switch (msg.getType()) {
             case "application":
                 System.out.println("> > > > > > > > > > > > receive an app message from " + msg.getSender() + " status now: " + this.status);
@@ -191,7 +213,6 @@ public class Node implements Runnable {
                     this.statusBuffer = this.status;
                     this.timestampBuffer = this.timestamp_array;
                     this.broadcast("MARKER");
-                    System.out.println("^&*&*&*&*&*&*&*&*&*&*&*&* set CLStarted to false recevice MARKER");
                     this.CLStarted = true;
                 }
                 // leaf node
@@ -211,9 +232,7 @@ public class Node implements Runnable {
                             .timestampCollection(temp_timestampCollection)
                             .build();
                     Msg.sendMsg(Msg, hostname + ".utdallas.edu", port);
-                    // clear property
                     this.receiveMarkNum = 0;
-                    System.out.println("^&*&*&*&*&*&*&*&*&*&*&*&* set CLStarted to false leaf recevice MARKER");
                     this.CLStarted = false;
                 }
                 break;
@@ -230,17 +249,10 @@ public class Node implements Runnable {
                     if (this.nodeID == 0) {
                         if (ifMAPStop(this.statusCollection)) {
                             System.out.println("-------------------------set ifMapstop = true---------");
+                            broadcastChildren("TERMINATE");
                             this.ifMAPStop = true;
                         }
-                        // TODO deal with the collection info hear
-                        System.out.println("should be deal with inf collection hear but just print status now");
-                        for (Map.Entry<Integer, String> entry : this.statusCollection.entrySet()) {
-                            System.out.println("Node: " + entry.getKey() + " status: " + entry.getValue());
-                        }
-//                        if (this.ifMAPStop) {
-//                            System.out.println("Node " + this.nodeID + "receive thread stop...");
-//                            return;
-//                        }
+                        outputFile(this.timestampCollection);
                     } else {
                         String hostname = this.NodeInfoList.get(this.parentID).get("hostname");
                         int port = Integer.parseInt(this.NodeInfoList.get(this.parentID).get("port"));
@@ -253,12 +265,16 @@ public class Node implements Runnable {
                                 .build();
                         Msg.sendMsg(Msg, hostname + ".utdallas.edu", port);
                     }
-                    System.out.println("^&*&*&*&*&*&*&*&*&*&*&*&* set CLStarted to false recevice conv");
                     this.CLStarted = false;
                     this.statusCollection.clear();
                     this.timestampCollection.clear();
                     this.receiveConvergeNum = 0;
                 }
+                break;
+            case "TERMINATE":
+                System.out.println("TTTTTTTTTTTTTTT receive TERMINATE message from " + msg.getSender());
+                this.terminate = true;
+                Thread.sleep(1000);
                 break;
             default:
                 System.out.println("#$%%^&#$%@%#$%^&$^&#$%@#%@%receive a " + msg.getType() + " message from " + msg.getSender());
@@ -297,6 +313,7 @@ public class Node implements Runnable {
 //            System.out.print("key: " + entry.getKey() + " value: " + entry.getValue());
 //            System.out.print("\n");
 //        }
+
     }
 
 }

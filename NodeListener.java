@@ -22,23 +22,10 @@ public class NodeListener extends Thread {
     public void run() {
         while (true) {
             try {
-//                if (this.node.ifMAPStop) {
-//                    System.out.println("Node " + this.node.nodeID + " listener thread stop...");
-//                    return;
-//                }
-                // System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "...");
                 Socket server = serverSocket.accept();
-
-                // get input
-                // System.out.println("Just connected to " + server.getRemoteSocketAddress());
                 ObjectInputStream in = new ObjectInputStream(server.getInputStream());
                 Message msg = (Message) in.readObject();
                 this.node.receiveMsg(msg);
-
-                // output to other node
-//                ObjectOutputStream out = new ObjectOutputStream(server.getOutputStream());
-//                out.writeUTF("Thank you for connecting to " + server.getLocalSocketAddress() + "\nGoodbye!");
-//                server.close();
             } catch (SocketTimeoutException s) {
                 System.out.println("Socket timed out!");
             } catch (IOException e) {
@@ -48,6 +35,15 @@ public class NodeListener extends Thread {
                 e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+            if (this.node.ifMAPStop || this.node.terminate) {
+                System.out.println("++++++++++++++ Node " + this.node.nodeID + " listener thread stop...");
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return;
             }
         }
     }
