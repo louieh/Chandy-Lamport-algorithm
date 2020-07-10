@@ -65,17 +65,8 @@ public class Node implements Runnable {
         this.terminate = false;
     }
 
-    public void makeSpanningTree() throws IOException, InterruptedException {
-        for (int outgoingNode : this.outgoingNodeList) {
-            String hostname = this.NodeInfoList.get(outgoingNode).get("hostname");
-            int port = Integer.parseInt(this.NodeInfoList.get(outgoingNode).get("port"));
-            Message msg = new Message.MessageBuilder()
-                    .from(this.nodeID)
-                    .to(outgoingNode)
-                    .type("search")
-                    .build();
-            msg.sendMsg(msg, hostname + ".utdallas.edu", port);
-        }
+    public void makeSpanningTree() {
+        broadcast("search");
     }
 
     private boolean ifMAPStop(HashMap<Integer, String> statusCollection) {
@@ -163,6 +154,7 @@ public class Node implements Runnable {
                 for (int i = 0; i < this.nodeNum; i++) {
                     this.timestamp_array[i] = Math.max(this.timestamp_array[i], msg.getTimestamp_array()[i]);
                 }
+                this.timestamp_array[this.nodeID] += 1;
                 if (this.appMsgSent < this.maxNumber && !this.status.equals("active")) {
                     System.out.println("appMsgSent less than maxNumber, change status to active");
                     this.status = "active";
@@ -191,19 +183,7 @@ public class Node implements Runnable {
                     Thread.sleep(1000);
 
                     // broadcast search message to my outgoing node
-                    for (int outgoingNode : this.outgoingNodeList) {
-                        if (outgoingNode != 0) {
-                            String broadcast_hostname = this.NodeInfoList.get(outgoingNode).get("hostname");
-                            int broadcast_port = Integer.parseInt(this.NodeInfoList.get(outgoingNode).get("port"));
-                            Message searchMsg = new Message.MessageBuilder()
-                                    .from(this.nodeID)
-                                    .to(outgoingNode)
-                                    .type("search")
-                                    .build();
-                            searchMsg.sendMsg(searchMsg, broadcast_hostname + ".utdallas.edu", broadcast_port);
-                            Thread.sleep(1000);
-                        }
-                    }
+                    broadcast("search");
                 }
                 break;
             case "MARKER":
@@ -273,6 +253,7 @@ public class Node implements Runnable {
                 break;
             case "TERMINATE":
                 System.out.println("TTTTTTTTTTTTTTT receive TERMINATE message from " + msg.getSender());
+                if (this.children.size() != 0) broadcastChildren("TERMINATE");
                 this.terminate = true;
                 Thread.sleep(1000);
                 break;

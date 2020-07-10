@@ -21,13 +21,12 @@ public class ChandyLamport implements Runnable {
         while (true) {
             try {
                 Thread.sleep(this.node.snapShotDelay);
-                if (this.node.ifMAPStop || this.node.terminate) {
-                    System.out.println("+++++++++++++++++++ Node " + this.node.nodeID + " Chandy Lamport stop.....");
-                    return;
-                }
-
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+            if (this.node.ifMAPStop || this.node.terminate) {
+                System.out.println("+++++++++++++++++++ Node " + this.node.nodeID + " Chandy Lamport stop.....");
+                return;
             }
             if (this.node.nodeID == 0) {
                 if (!this.node.CLStarted) {
